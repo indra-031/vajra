@@ -1,0 +1,8 @@
+requests
+beautifulsoup4
+tqdm
+detect-secrets
+semgrep
+xnLinkFinder
+wafw00f
+njsscan
