@@ -6,24 +6,38 @@ import subprocess
 import json
 from urllib.parse import urlparse
 
+
+# ----------------------------
+# Helpers
+# ----------------------------
+
 def normalize_domain(target: str) -> str:
     parsed = urlparse(target if target.startswith("http") else f"https://{target}")
     return parsed.netloc
 
-def run_retire(scan_path: str, output_path: str):
-    # print(f"\n[+] Scanning: {scan_path}")
 
+def get_project_root() -> str:
+    """
+    Resolve project root dynamically based on this file location.
+    attack/offline/retirejs.py  ->  ../../ (project root)
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(script_dir, "../../"))
+
+
+def run_retire(scan_path: str, output_path: str):
     result = subprocess.run(
         [
             "retire",
             "--path", scan_path,
             "--outputformat", "json",
             "--outputpath", output_path
-        ]
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
     )
+    return result.returncode
 
-    # print(f"[✓] Finished scanning: {scan_path}")
-    # print(f"[DEBUG] Exit code: {result.returncode}")
 
 def parse_summary(json_path, severity_counter):
     if not os.path.isfile(json_path):
@@ -32,7 +46,7 @@ def parse_summary(json_path, severity_counter):
     try:
         with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-    except:
+    except Exception:
         return 0
 
     count = 0
@@ -46,57 +60,59 @@ def parse_summary(json_path, severity_counter):
 
     return count
 
+
+# ----------------------------
+# Main
+# ----------------------------
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: retirejs.py <domain>")
         sys.exit(1)
 
     domain = normalize_domain(sys.argv[1])
-    base = "../../targets"
+    project_root = get_project_root()
 
-    js_dir = f"{base}/{domain}/download/js"
-    inline_dir = f"{base}/{domain}/download/inline-js"
-    html_dir = f"{base}/{domain}/download/html"
+    base = os.path.join(project_root, "targets")
 
-    out_dir = f"{base}/{domain}/attack/offline/retire"
+    js_dir = os.path.join(base, domain, "download", "js")
+    inline_dir = os.path.join(base, domain, "download", "inline-js")
+    html_dir = os.path.join(base, domain, "download", "html")
+
+    out_dir = os.path.join(base, domain, "attack", "offline", "retire")
     os.makedirs(out_dir, exist_ok=True)
 
     print("[+] Running retire.js static scan")
 
     if os.path.isdir(js_dir):
-        run_retire(js_dir, f"{out_dir}/js.json")
+        run_retire(js_dir, os.path.join(out_dir, "js.json"))
     else:
         print("[-] JS directory not found")
 
     if os.path.isdir(inline_dir):
-        run_retire(inline_dir, f"{out_dir}/inline-js.json")
+        run_retire(inline_dir, os.path.join(out_dir, "inline-js.json"))
     else:
         print("[-] inline-js directory not found")
 
     if os.path.isdir(html_dir):
-        run_retire(html_dir, f"{out_dir}/html.json")
+        run_retire(html_dir, os.path.join(out_dir, "html.json"))
     else:
         print("[-] HTML directory not found")
-
-    # print("\n[✓] All scans completed")
 
     # -------- SUMMARY --------
     severity_counter = {}
     total = 0
 
     for file in ["js.json", "inline-js.json", "html.json"]:
-        total += parse_summary(f"{out_dir}/{file}", severity_counter)
-
-    # print("\n========== SUMMARY ==========")
+        total += parse_summary(os.path.join(out_dir, file), severity_counter)
 
     if total == 0:
         print("No vulnerabilities found ✅")
     else:
         print(f"Total vulnerabilities found: {total}")
-        for sev, count in severity_counter.items():
-            print(f"{sev.capitalize()} : {count}")
+        for sev in sorted(severity_counter):
+            print(f"{sev.capitalize()} : {severity_counter[sev]}")
 
-    # print("=============================\n")
 
 if __name__ == "__main__":
     main()
