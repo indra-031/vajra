@@ -15,11 +15,6 @@ def normalize_domain(target: str) -> str:
 
 
 def get_project_root() -> str:
-    """
-    Go two levels up from:
-    wordlist/parameter/parameter.py
-    to reach project root (vajra/)
-    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(script_dir, "../../"))
 
@@ -31,12 +26,11 @@ def get_project_root() -> str:
 def main():
     if len(sys.argv) != 2:
         print("Usage: python parameter.py <domain>")
-        sys.exit(1)
+        return  # ⬅️ no exit(1)
 
     domain = normalize_domain(sys.argv[1])
     project_root = get_project_root()
 
-    # Source file (targets/DOMAIN/...)
     source_file = os.path.join(
         project_root,
         "targets",
@@ -46,16 +40,15 @@ def main():
         "parameters-merge.txt"
     )
 
-    # Wordlist location (same folder as this script)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    wordlist_dir = script_dir
-    wordlist_file = os.path.join(wordlist_dir, "wordlist-parameter.txt")
+    wordlist_file = os.path.join(script_dir, "wordlist-parameter.txt")
 
+    # ✅ اگر فایل نبود → فقط رد شو
     if not os.path.isfile(source_file):
-        print(f"[-] Source file not found: {source_file}")
-        sys.exit(1)
+        print(f"[!] No parameters file found for {domain} — skipping.")
+        return  # ⬅️ graceful skip
 
-    os.makedirs(wordlist_dir, exist_ok=True)
+    os.makedirs(script_dir, exist_ok=True)
 
     # Read existing wordlist
     existing_words = set()
@@ -75,10 +68,8 @@ def main():
             if line.strip()
         }
 
-    # Remove duplicates
     unique_new_words = new_words - existing_words
 
-    # Append only new ones
     if unique_new_words:
         with open(wordlist_file, "a", encoding="utf-8") as f:
             for word in sorted(unique_new_words):
