@@ -43,7 +43,6 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     wordlist_file = os.path.join(script_dir, "wordlist-parameter.txt")
 
-    # ✅ اگر فایل نبود → فقط رد شو
     if not os.path.isfile(source_file):
         print(f"[!] No parameters file found for {domain} — skipping.")
         return  # ⬅️ graceful skip
