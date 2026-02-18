@@ -141,7 +141,10 @@ echo
 
 python3 extraction/merge.py "$TARGET"
 python3 extraction/url-with-param.py "$TARGET"
+
+echo "[+] Running Wordlists"
 python3 wordlist/parameter/parameter.py "$TARGET"
+
 # -------------------------
 # Secrets Hunting
 # -------------------------
