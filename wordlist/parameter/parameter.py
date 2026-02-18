@@ -78,7 +78,7 @@ def main():
 
     print("\n[✓] Wordlist update completed")
     print(f"[+] New parameters added: {len(unique_new_words)}")
-    print(f"[+] Total parameters in wordlist: {total_count}")
+    print(f"[+] Total parameters in wordlist: {total_count}\n")
 
 
 if __name__ == "__main__":
