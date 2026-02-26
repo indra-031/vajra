@@ -6,3 +6,4 @@ semgrep
 xnLinkFinder
 wafw00f
 njsscan
+bs4
