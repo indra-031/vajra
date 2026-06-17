@@ -134,7 +134,7 @@ echo
 
 
 echo "[+] Running 3rd Modules"
-# python3 extraction/linkfinder.py "$TARGET"
+python3 extraction/linkfinder.py "$TARGET"
 python3 extraction/xnlinkfinder.py "$TARGET"
 echo
 
@@ -144,7 +144,6 @@ python3 extraction/url-with-param.py "$TARGET"
 
 echo "[+] Running Wordlists"
 python3 wordlist/parameter/parameter.py "$TARGET"
-
 # -------------------------
 # Secrets Hunting
 # -------------------------
@@ -164,17 +163,20 @@ echo
 # -------------------------
 # Offline Attack
 # -------------------------
-echo "[+] Running Offline Attacks"
-python3 attack/offline/dom/dom-map.py "$TARGET"
-python3 attack/offline/dom/dom-flow.py "$TARGET"
-python3 attack/offline/dom/dom-xss.py "$TARGET"
-python3 attack/offline/njsscan.py "$TARGET"
-python3 attack/offline/retirejs.py "$TARGET"
+# echo "[+] Running Offline Attacks"
+# python3 attack/offline/dom/dom-map.py "$TARGET"
+# python3 attack/offline/dom/dom-flow.py "$TARGET"
+# python3 attack/offline/dom/dom-xss.py "$TARGET"
+# python3 attack/offline/njsscan.py "$TARGET"
+# python3 attack/offline/retirejs.py "$TARGET"
 
 # -------------------------
 # Online Attack
 # -------------------------
-# echo "[+] Running Online Attacks"
+echo "[+] Running Online Attacks"
+echo "[+] Running LFI Scanner"
+python3 attack/online/lfi/merge.py "$TARGET"
+python3 attack/online/lfi/lfi.py "$TARGET"
 
 echo "[+] Vajra finished successfully"
 echo "[+] Happy hunting ⚡"
