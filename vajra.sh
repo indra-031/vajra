@@ -134,7 +134,7 @@ echo
 
 
 echo "[+] Running 3rd Modules"
-python3 extraction/linkfinder.py "$TARGET"
+# python3 extraction/linkfinder.py "$TARGET"
 python3 extraction/xnlinkfinder.py "$TARGET"
 echo
 
@@ -174,6 +174,10 @@ echo
 # Online Attack
 # -------------------------
 echo "[+] Running Online Attacks"
+echo "[+] Running X9 Scanner"
+python3 attack/online/x9/urls.py "$TARGET"
+python3 attack/online/x9/x9.py "$TARGET"
+
 echo "[+] Running LFI Scanner"
 python3 attack/online/lfi/merge.py "$TARGET"
 python3 attack/online/lfi/lfi.py "$TARGET"
