@@ -1,0 +1,67 @@
+id: x9-post-reflection
+
+info:
+  name: X9 - POST Payload Reflection Matcher
+  author: X9-Fuzzer
+  severity: info
+  description: Detects reflection of X9 payloads in POST requests
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}"
+    
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    
+    body: "{{parameter}}={{payload}}"
+
+    payloads:
+      parameter:
+        - q
+        - s
+        - search
+        - id
+        - lang
+        - keyword
+        - query
+        - page
+        - keywords
+        - year
+        - view
+        - email
+        - type
+        - name
+        - p
+        - month
+        - image
+        - list_type
+        - url
+        - terms
+        - categoryid
+        - key
+        - login
+        - begindate
+        - enddate
+        - d
+        - redirect_uri
+        - currentURL
+        - search_box
+      
+      payload:
+        - "<b/mamad"
+        - "\"mamad\"\""
+        - "'mamad''"
+        - "mamad\\\"\""
+        - "mamad\\'\\'"
+        - "\"mamad"
+        - "'\\'mamad"
+        - "mamad"
+
+    attack: clusterbomb
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "mamad"

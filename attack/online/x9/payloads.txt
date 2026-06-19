@@ -1,0 +1,8 @@
+"<b/mamad"
+"\"mamad\"\""
+"'mamad''"
+"mamad\\\"\""
+"mamad\\'\'"
+"\"mamad"
+"'\\'mamad"
+"mamad"

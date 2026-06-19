@@ -1,0 +1,18 @@
+id: x9-get-reflection
+
+info:
+  name: X9 - GET Payload Reflection Matcher
+  author: X9-Fuzzer
+  severity: info
+  description: Detects reflection of X9 payloads in GET requests
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "mamad"
