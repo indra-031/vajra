@@ -23,8 +23,8 @@ class X9Auto:
     # تنظیمات پیش‌فرض (می‌توانید تغییر دهید)
     GET_CHUNK_SIZE = 300          # هر قطعه چند URL داشته باشد
     POST_CHUNK_SIZE = 15           # POST تعداد درخواست بیشتری دارد
-    GET_WORKERS = 3                # اجرای هم‌زمان چند قطعه GET
-    POST_WORKERS = 2               # اجرای هم‌زمان قطعات POST
+    GET_WORKERS = 20                # اجرای هم‌زمان چند قطعه GET
+    POST_WORKERS = 10               # اجرای هم‌زمان قطعات POST
     CHUNK_TIMEOUT = 600            # حداکثر زمان برای هر قطعه (ثانیه)
     NUCLEI_GET_CONCURRENCY = 100   # هم‌روندی داخلی nuclei برای GET
     NUCLEI_GET_RATE = 300          # نرخ درخواست nuclei برای GET
