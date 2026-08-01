@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Vajra Dalfox XSS Scanner – integration with X9 results.
-Reads X9 findings, builds target URLs with vulnerable params,
-runs Dalfox, and prints a beautiful summary (PoC details in file).
+Vajra Dalfox XSS Scanner – strictly pivots from X9 results.
+Only runs when X9 has identified vulnerable parameters.
 """
 
 import sys
@@ -19,7 +18,7 @@ from collections import defaultdict
 # ----------- CONFIGURATION -----------
 WORKERS = 50
 TIMEOUT = 10
-DELAY_MS = 0          # 0 = no delay
+DELAY_MS = 0
 WAF_EVASION = False
 # -------------------------------------
 
@@ -37,7 +36,6 @@ class DalfoxIntegrator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         self.x9_result_file = self.x9_dir / "result.json"
-        self.x9_valid_urls_file = self.x9_dir / "valid_urls.txt"
         self.url_list_file = self.output_dir / "dalfox_urls.txt"
         self.result_file = self.output_dir / "dalfox_result.json"
 
@@ -50,18 +48,23 @@ class DalfoxIntegrator:
         return True
 
     def load_x9_findings(self):
+        """Returns list of findings if X9 result.json exists and contains findings, else []."""
         if not self.x9_result_file.exists():
             print(f"[!] X9 result not found: {self.x9_result_file}")
             return []
         try:
             with open(self.x9_result_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            return data.get('findings', [])
+            findings = data.get('findings', [])
+            if not findings:
+                print("[!] X9 result contains no vulnerable endpoints.")
+            return findings
         except Exception as e:
             print(f"[!] Error reading X9 result: {e}")
             return []
 
     def build_urls_from_findings(self, findings):
+        """Build one URL per endpoint containing all vulnerable params with test value."""
         endpoint_params = defaultdict(set)
         for f in findings:
             base_url = f.get('url')
@@ -80,19 +83,13 @@ class DalfoxIntegrator:
             urls.append(full_url)
         return urls
 
-    def build_fallback_urls(self):
-        if self.x9_valid_urls_file.exists():
-            with open(self.x9_valid_urls_file, 'r') as f:
-                return [line.strip() for line in f if line.strip()]
-        return [self.target_url]
-
     def write_url_list(self, urls):
         with open(self.url_list_file, 'w') as f:
             f.write('\n'.join(urls))
         return self.url_list_file
 
     def run_dalfox(self, skip_mining=True):
-        # پاک کردن فایل نتیجه قبلی برای جلوگیری از append شدن
+        # Remove previous result to avoid append
         if self.result_file.exists():
             self.result_file.unlink()
 
@@ -128,7 +125,6 @@ class DalfoxIntegrator:
             return False
 
     def parse_results(self):
-        """خواندن آرایه JSON واحد (چون فایل قبلی پاک شده)"""
         if not self.result_file.exists():
             return [], {}, []
 
@@ -158,7 +154,6 @@ class DalfoxIntegrator:
         verified = sum(1 for f in findings if f.get('type') == 'V')
         reflected = sum(1 for f in findings if f.get('type') == 'R')
 
-        # جمع‌آوری domainهای یکتا از URLهای موجود در هر finding
         unique_hosts = set()
         for f in findings:
             url = f.get('data', '')
@@ -197,24 +192,23 @@ class DalfoxIntegrator:
         if not self.check_dalfox():
             return
 
+        # Strictly require X9 findings
         x9_findings = self.load_x9_findings()
-        if x9_findings:
-            print(f"[+] Loaded {len(x9_findings)} vulnerable endpoints from X9.")
-            urls = self.build_urls_from_findings(x9_findings)
-            skip_mining = True
-        else:
-            print("[!] No X9 findings. Falling back to all validated URLs (mining enabled).")
-            urls = self.build_fallback_urls()
-            skip_mining = False
+        if not x9_findings:
+            print("[!] No X9 vulnerable parameters found. Dalfox skipped (requires prior X9 results).")
+            return
+
+        print(f"[+] Loaded {len(x9_findings)} vulnerable endpoints from X9.")
+        urls = self.build_urls_from_findings(x9_findings)
 
         if not urls:
-            print("[-] No URLs to test.")
+            print("[-] Could not build any URLs. Exiting.")
             return
 
         print(f"[+] Prepared {len(urls)} URL(s) for Dalfox.")
         self.write_url_list(urls)
 
-        success = self.run_dalfox(skip_mining=skip_mining)
+        success = self.run_dalfox(skip_mining=True)
         if not success:
             print("[!] Dalfox scan did not complete successfully.")
             return
@@ -223,7 +217,7 @@ class DalfoxIntegrator:
         elapsed = time.time() - start_time
         self.print_summary(findings, http_stats, vuln_params, elapsed)
 
-        # پاک کردن فایل موقت URLها
+        # Keep the URL file for reference if needed (cleanup optional)
         # if self.url_list_file.exists():
         #     self.url_list_file.unlink()
 
