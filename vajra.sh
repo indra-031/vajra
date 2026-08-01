@@ -178,6 +178,9 @@ echo "[+] Running X9 Scanner"
 python3 attack/online/x9/urls.py "$TARGET"
 python3 attack/online/x9/x9.py "$TARGET"
 
+echo "[+] Running Dalfox"
+python3 attack/online/dalfox/dalfox.py "$TARGET"
+
 echo "[+] Running LFI Scanner"
 python3 attack/online/lfi/merge.py "$TARGET"
 python3 attack/online/lfi/lfi.py "$TARGET"
